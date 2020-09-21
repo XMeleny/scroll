@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ScrollTest</string>
+    <string name="lorem_ipsum">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus blandit velit feugiat metus auctor, in tristique ante auctor. Aenean id eros quis velit tincidunt consectetur. Proin suscipit pulvinar consequat. Quisque congue vestibulum felis, vitae euismod odio consequat vitae. Vivamus non ante lobortis, lobortis ex at, suscipit justo. Aliquam diam purus, rutrum quis quam a, pretium convallis diam. Maecenas viverra mauris a ex malesuada, vel accumsan magna tincidunt. Cras eget elit vitae quam dignissim facilisis id vel turpis. Pellentesque sed gravida elit, in cursus metus. Aenean maximus eros nulla, vitae imperdiet dolor eleifend tristique. Mauris varius leo facilisis dolor ultricies, vitae interdum eros cursus. Donec molestie scelerisque arcu, quis sollicitudin dolor blandit et.</string>
+    <string name="title">i m title i m title i m title i m title i m title i m title i m title i m title i m title i m title</string>
+</resources>
