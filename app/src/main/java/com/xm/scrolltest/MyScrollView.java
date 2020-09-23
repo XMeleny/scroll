@@ -88,14 +88,14 @@ public class MyScrollView extends FrameLayout implements NestedScrollingParent3 
         super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
     }
 
-    // COMMENT: zhuxiaomei 在滑动的时候, 假如触摸点在title处, 不会执行到这个方法.因为这个方法是NestedChild向上找NestedParent才调用的. titleView不是NestedChild不会进行寻找, 所以不会执行
+    // COMMENT: zhuxiaomei 在滑动的时候, 假如触摸点在title处, 不会执行到这个方法.
+    // COMMENT: zhuxiaomei 因为这个方法是NestedChild向上找NestedParent才调用的. titleView不是NestedChild不会进行寻找, 所以不会执行
     @Override
     public void onNestedPreScroll(@NonNull View target, int dx, int dy, @NonNull int[] consumed, int type) {
-        scroll(childView.getTop(), dy, consumed);
+        scroll(dy, consumed);
     }
 
-    // COMMENT: zhuxiaomei 人的视角: if(dy>0) 向下滑动, 否则向上滑动
-    private void scroll(int childTop, int dy, int[] consumed) {
+    private void scroll(int dy, int[] consumed) {
         if (dy > 0) {
             if (dy <= titleLeft) {
                 parentView.scrollBy(0, dy);
@@ -115,70 +115,11 @@ public class MyScrollView extends FrameLayout implements NestedScrollingParent3 
                 if (-dy > leftDistance) {
                     parentView.scrollBy(0, -leftDistance);
                     titleLeft = titleHeight;
-                    consumed[1] = dy;
-
                 } else {
                     parentView.scrollBy(0, dy);
                     titleLeft -= dy;
-                    consumed[1] = dy;
                 }
-            }
-            /*
-            if(child.canScroll(dy)){
-                doNothing(); left the child to do
-            }else{
-                if(-dy > titleHeight){
-                    if(titleLeft<titleHeight){
-                        parent.scrollBy(0,-titleHeight);
-                        titleLeft = titleHeight;
-                        consumed[1]=dy;
-                    } else {
-                        consumed[1]=dy;
-                    }
-                }else{
-                    parent.scrollBy(dy);
-                    titleLeft -= dy;
-
-             */
-        }
-
-//        onChildScrolling(childTop, dy, consumed);
-    }
-
-    // COMMENT: zhuxiaomei scrollBy 滑动的是内部视图?
-
-    // COMMENT: zhuxiaomei 滑动的时候childTop不会改变...
-    private void onParentScrolling(int childTop, int dy, int[] consumed) {
-        if (childTop == 0) {
-            if (dy > 0) {
-                childView.scrollBy(0, dy);
                 consumed[1] = dy;
-            } else if (childView.canScrollVertically(dy)) {
-                childView.scrollBy(0, dy);
-                consumed[1] = dy;
-            }
-        } else {
-            if (childTop < dy) {
-                consumed[1] = dy - childTop;
-            }
-        }
-    }
-
-    private void onChildScrolling(int childTop, int dy, int[] consumed) {
-        if (childTop <= 0) {
-            if (dy < 0) {
-                if (!childView.canScrollVertically(dy)) {
-                    consumed[1] = dy;
-                    this.scrollBy(0, dy);
-                }
-            }
-        } else {
-            if (dy < 0 || childTop > dy) {
-                consumed[1] = dy;
-                this.scrollBy(0, dy);
-            } else {
-                consumed[1] = dy;
-                this.scrollBy(0, childTop);
             }
         }
     }
