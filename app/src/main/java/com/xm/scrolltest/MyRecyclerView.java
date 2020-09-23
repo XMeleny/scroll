@@ -21,6 +21,7 @@ import java.util.ArrayList;
  * email:  zhuxiaomei.meleny@bytedance.com
  * date:   2020/8/18
  */
+//已经放好数据
 public class MyRecyclerView extends RecyclerView {
     public MyRecyclerView(@NonNull Context context) {
         this(context, null);

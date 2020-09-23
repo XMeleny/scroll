@@ -28,6 +28,4 @@ public class MyNestedScrollLayout extends FrameLayout {
 
     private RecyclerView rootList;
     private RecyclerView childList;
-
-
 }

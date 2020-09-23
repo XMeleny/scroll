@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.xm.scrolltest.MyScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/parent_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
         <TextView
@@ -16,11 +17,10 @@
             android:text="@string/title"
             android:textSize="25dp" />
 
-        <!--        RecyclerView here-->
         <com.xm.scrolltest.MyRecyclerView
-            android:id="@+id/rv_content"
+            android:id="@+id/child_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="match_parent" />
 
     </LinearLayout>
 
