@@ -18,7 +18,7 @@ import androidx.core.view.ViewCompat;
  * date:   2020/8/12
  */
 
-//extends ScrollView implements NestedScrollingParent3
+// TODO: zhuxiaomei 让标题拦截滑动, 并把滑动事件传递给MyView
 public class MyScrollView extends FrameLayout implements NestedScrollingParent3 {
     private static final String TAG = "MyScrollView";
 
@@ -52,6 +52,21 @@ public class MyScrollView extends FrameLayout implements NestedScrollingParent3 
         this.childView = childView;
         parentView = this;
     }
+
+    private boolean isTouchPointInView(View view, int x, int y) {
+        if (view == null) return false;
+
+        int[] location = new int[2];
+        view.getLocationOnScreen(location);
+        int left = location[0];
+        int top = location[1];
+        int right = left + view.getMeasuredWidth();
+        int bottom = top + view.getMeasuredHeight();
+
+        return left <= x && x <= right && top <= y && y <= bottom;
+    }
+
+    // TODO: zhuxiaomei 看看NestedScrollView的intercept和onTouchEvent方法
 
     @Override
     public void onNestedScroll(@NonNull View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed, int type, @NonNull int[] consumed) {
