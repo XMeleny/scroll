@@ -3,6 +3,8 @@ package com.xm.scrolltest;
 import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -19,7 +21,7 @@ import androidx.core.view.ViewCompat;
  */
 
 // TODO: zhuxiaomei 让标题拦截滑动, 并把滑动事件传递给MyView
-public class MyScrollView extends FrameLayout implements NestedScrollingParent3 {
+public class MyScrollView extends FrameLayout {
     private static final String TAG = "MyScrollView";
 
     View childView;
@@ -27,7 +29,6 @@ public class MyScrollView extends FrameLayout implements NestedScrollingParent3 
 
     View titleView;
 
-    private int mAxes;
     private int titleLeft;
     private int titleHeight;
 
@@ -66,32 +67,44 @@ public class MyScrollView extends FrameLayout implements NestedScrollingParent3 
         return left <= x && x <= right && top <= y && y <= bottom;
     }
 
-    // TODO: zhuxiaomei 看看NestedScrollView的intercept和onTouchEvent方法
+    int lastMotionY;
 
-    @Override
-    public void onNestedScroll(@NonNull View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed, int type, @NonNull int[] consumed) {
-
+    public void setLastMotionY(int lastMotionY) {
+        this.lastMotionY = lastMotionY;
     }
 
     @Override
-    public boolean onStartNestedScroll(@NonNull View child, @NonNull View target, int axes, int type) {
-        return axes == ViewCompat.SCROLL_AXIS_VERTICAL;
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        int y = (int) ev.getY();
+        int action = ev.getAction();
+
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+                setLastMotionY(y);
+                break;
+            case MotionEvent.ACTION_MOVE:
+                setLastMotionY(y);
+                return true;
+        }
+        return false;
     }
 
     @Override
-    public void onNestedScrollAccepted(@NonNull View child, @NonNull View target, int axes, int type) {
-        mAxes = axes;
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    @Override
-    public void onStopNestedScroll(@NonNull View target, int type) {
-        mAxes = SCROLL_AXIS_NONE;
-    }
-
-    @Override
-    public void onNestedScroll(@NonNull View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed, int type) {
-
+    public boolean onTouchEvent(MotionEvent event) {
+        final int action = event.getAction();
+        final int y = (int) event.getY();
+        Log.d(TAG, "onTouchEvent: y = " + y);
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+                setLastMotionY(y);
+                break;
+            case MotionEvent.ACTION_MOVE:
+                int dy = lastMotionY - y;
+                setLastMotionY(y);
+                scroll(dy);
+                break;
+        }
+        return true;
     }
 
     @Override
@@ -103,29 +116,21 @@ public class MyScrollView extends FrameLayout implements NestedScrollingParent3 
         super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
     }
 
-    // COMMENT: zhuxiaomei 在滑动的时候, 假如触摸点在title处, 不会执行到这个方法.
-    // COMMENT: zhuxiaomei 因为这个方法是NestedChild向上找NestedParent才调用的. titleView不是NestedChild不会进行寻找, 所以不会执行
-    @Override
-    public void onNestedPreScroll(@NonNull View target, int dx, int dy, @NonNull int[] consumed, int type) {
-        scroll(dy, consumed);
-    }
-
-    private void scroll(int dy, int[] consumed) {
+    private void scroll(int dy) {
         if (dy > 0) {
-            if (dy <= titleLeft) {
+            if (dy < titleLeft) {
                 parentView.scrollBy(0, dy);
                 titleLeft -= dy;
-                consumed[1] = dy;
             } else {
                 parentView.scrollBy(0, titleLeft);
-                consumed[1] = titleLeft;
+                dy -= titleLeft;
+                childView.scrollBy(0, dy);
                 titleLeft = 0;
             }
         } else {
             if (childView.canScrollVertically(dy)) {
-                //do nothing, let the child to deal with it
+                childView.scrollBy(0, dy);
             } else {
-                // COMMENT: zhuxiaomei 如果dy比title大, 那么title只能滑剩下的.
                 int leftDistance = titleHeight - titleLeft;
                 if (-dy > leftDistance) {
                     parentView.scrollBy(0, -leftDistance);
@@ -134,13 +139,8 @@ public class MyScrollView extends FrameLayout implements NestedScrollingParent3 
                     parentView.scrollBy(0, dy);
                     titleLeft -= dy;
                 }
-                consumed[1] = dy;
             }
         }
-    }
-
-    @Override
-    public int getNestedScrollAxes() {
-        return mAxes;
+        Log.d(TAG, "scroll: parent.scrollY = " + parentView.getScrollY() + "child.scrollY = " + childView.getScrollY());
     }
 }
