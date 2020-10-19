@@ -100,59 +100,9 @@ public class MyScrollView extends FrameLayout {
         super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
     }
 
-//    private void scroll(int dy) {
-//        Log.d(TAG, "scroll: dy = " + dy);
-//        if (dy > 0) {
-//            if (dy < titleLeft) {
-//                parentView.scrollBy(0, dy);
-//                titleLeft -= dy;
-//            } else {
-//                parentView.scrollBy(0, titleLeft);
-//                titleLeft = 0;
-//                dy -= titleLeft;
-//                childView.scrollBy(0, dy);
-//            }
-//        } else {
-//            int childLeft = childView.computeVerticalScrollOffset();
-//            if (childLeft > 0) {
-//                if (-dy > childLeft) {
-////                    childView.scrollBy(0, -childLeft);
-////                    dy += childLeft;
-////                    parentView.scrollBy(0, dy);
-////                    //todo
-//                    scrollParent(scrollChild(dy));
-//
-//                } else {
-//                    childView.scrollBy(0, dy);
-//                }
-//            } else {
-//                int leftDistance = titleHeight - titleLeft;
-//                if (-dy > leftDistance) {
-//                    parentView.scrollBy(0, -leftDistance);
-//                    titleLeft = titleHeight;
-//                } else {
-//                    parentView.scrollBy(0, dy);
-//                    titleLeft -= dy;
-//                }
-//            }
-////            if (childView.canScrollVertically(dy)) {
-////                childView.scrollBy(0, dy);
-////            } else {
-////                int leftDistance = titleHeight - titleLeft;
-////                if (-dy > leftDistance) {
-////                    parentView.scrollBy(0, -leftDistance);
-////                    titleLeft = titleHeight;
-////                } else {
-////                    parentView.scrollBy(0, dy);
-////                    titleLeft -= dy;
-////                }
-////            }
-//        }
-//        Log.d(TAG, "scroll: parent.scrollY = " + parentView.getScrollY() + ", child.scrollY = " + childView.computeVerticalScrollOffset());
-//    }
-
-    // 向下的时候, 先滑title(外), 后滑child
     private void scroll(int dy) {
+        // 向下滑动的时候, 先考虑title(parent), 后考虑child;
+        // 向上滑动的时候, 先考虑child, 后考虑parent. parent滑动时不能过多.
         if (dy > 0) {
             scrollChild(scrollParent(dy));
         } else {
