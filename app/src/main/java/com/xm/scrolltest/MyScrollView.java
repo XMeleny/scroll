@@ -1,18 +1,15 @@
 package com.xm.scrolltest;
 
 import android.content.Context;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.core.view.NestedScrollingParent3;
-import androidx.core.view.ViewCompat;
+import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * @author zhuxiaomei
@@ -20,11 +17,10 @@ import androidx.core.view.ViewCompat;
  * date:   2020/8/12
  */
 
-// TODO: zhuxiaomei 让标题拦截滑动, 并把滑动事件传递给MyView
 public class MyScrollView extends FrameLayout {
     private static final String TAG = "MyScrollView";
 
-    View childView;
+    RecyclerView childView;
     View parentView;
 
     View titleView;
@@ -32,39 +28,25 @@ public class MyScrollView extends FrameLayout {
     private int titleLeft;
     private int titleHeight;
 
+    private int mTouchSlop;
+
     public MyScrollView(Context context) {
         this(context, null);
     }
 
     public MyScrollView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init();
-    }
-
-    private void init() {
-        //empty
+        parentView = this;
+        final ViewConfiguration configuration = ViewConfiguration.get(getContext());
+        mTouchSlop = configuration.getScaledTouchSlop();
     }
 
     public void setTitleView(View titleView) {
         this.titleView = titleView;
     }
 
-    public void setChildView(View childView) {
+    public void setChildView(RecyclerView childView) {
         this.childView = childView;
-        parentView = this;
-    }
-
-    private boolean isTouchPointInView(View view, int x, int y) {
-        if (view == null) return false;
-
-        int[] location = new int[2];
-        view.getLocationOnScreen(location);
-        int left = location[0];
-        int top = location[1];
-        int right = left + view.getMeasuredWidth();
-        int bottom = top + view.getMeasuredHeight();
-
-        return left <= x && x <= right && top <= y && y <= bottom;
     }
 
     int lastMotionY;
@@ -100,8 +82,10 @@ public class MyScrollView extends FrameLayout {
                 break;
             case MotionEvent.ACTION_MOVE:
                 int dy = lastMotionY - y;
-                setLastMotionY(y);
-                scroll(dy);
+                if (Math.abs(dy) > mTouchSlop) {
+                    setLastMotionY(y);
+                    scroll(dy);
+                }
                 break;
         }
         return true;
@@ -116,31 +100,105 @@ public class MyScrollView extends FrameLayout {
         super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
     }
 
+//    private void scroll(int dy) {
+//        Log.d(TAG, "scroll: dy = " + dy);
+//        if (dy > 0) {
+//            if (dy < titleLeft) {
+//                parentView.scrollBy(0, dy);
+//                titleLeft -= dy;
+//            } else {
+//                parentView.scrollBy(0, titleLeft);
+//                titleLeft = 0;
+//                dy -= titleLeft;
+//                childView.scrollBy(0, dy);
+//            }
+//        } else {
+//            int childLeft = childView.computeVerticalScrollOffset();
+//            if (childLeft > 0) {
+//                if (-dy > childLeft) {
+////                    childView.scrollBy(0, -childLeft);
+////                    dy += childLeft;
+////                    parentView.scrollBy(0, dy);
+////                    //todo
+//                    scrollParent(scrollChild(dy));
+//
+//                } else {
+//                    childView.scrollBy(0, dy);
+//                }
+//            } else {
+//                int leftDistance = titleHeight - titleLeft;
+//                if (-dy > leftDistance) {
+//                    parentView.scrollBy(0, -leftDistance);
+//                    titleLeft = titleHeight;
+//                } else {
+//                    parentView.scrollBy(0, dy);
+//                    titleLeft -= dy;
+//                }
+//            }
+////            if (childView.canScrollVertically(dy)) {
+////                childView.scrollBy(0, dy);
+////            } else {
+////                int leftDistance = titleHeight - titleLeft;
+////                if (-dy > leftDistance) {
+////                    parentView.scrollBy(0, -leftDistance);
+////                    titleLeft = titleHeight;
+////                } else {
+////                    parentView.scrollBy(0, dy);
+////                    titleLeft -= dy;
+////                }
+////            }
+//        }
+//        Log.d(TAG, "scroll: parent.scrollY = " + parentView.getScrollY() + ", child.scrollY = " + childView.computeVerticalScrollOffset());
+//    }
+
+    // 向下的时候, 先滑title(外), 后滑child
     private void scroll(int dy) {
+        if (dy > 0) {
+            scrollChild(scrollParent(dy));
+        } else {
+            scrollParent(scrollChild(dy));
+        }
+    }
+
+    private int scrollChild(int dy) {
+        if (dy > 0) {
+            childView.scrollBy(0, dy);
+            dy -= dy;
+        } else {
+            int childLeft = childView.computeVerticalScrollOffset();//childLeft>=0
+            if (-dy > childLeft) {
+                childView.scrollBy(0, -childLeft);
+                dy += childLeft;
+            } else {
+                childView.scrollBy(0, dy);
+                dy -= dy;
+            }
+        }
+        return dy;
+    }
+
+    private int scrollParent(int dy) {
         if (dy > 0) {
             if (dy < titleLeft) {
                 parentView.scrollBy(0, dy);
                 titleLeft -= dy;
+                dy -= dy;
             } else {
                 parentView.scrollBy(0, titleLeft);
+                titleLeft -= titleLeft;
                 dy -= titleLeft;
-                childView.scrollBy(0, dy);
-                titleLeft = 0;
             }
         } else {
-            if (childView.canScrollVertically(dy)) {
-                childView.scrollBy(0, dy);
+            int leftDistance = titleHeight - titleLeft;
+            if (-dy > leftDistance) {
+                parentView.scrollBy(0, -leftDistance);
+                titleLeft += leftDistance;
             } else {
-                int leftDistance = titleHeight - titleLeft;
-                if (-dy > leftDistance) {
-                    parentView.scrollBy(0, -leftDistance);
-                    titleLeft = titleHeight;
-                } else {
-                    parentView.scrollBy(0, dy);
-                    titleLeft -= dy;
-                }
+                parentView.scrollBy(0, dy);
+                titleLeft -= dy;
             }
+            dy -= dy;
         }
-        Log.d(TAG, "scroll: parent.scrollY = " + parentView.getScrollY() + "child.scrollY = " + childView.getScrollY());
+        return dy;
     }
 }
